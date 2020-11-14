@@ -13,6 +13,7 @@ from torchvision import transforms
 from models.fpn_global_local_fmreg_ensemble import fpn
 from utils.metrics import ConfusionMatrix
 from PIL import Image
+from dataset.deep_globe import RGB_mapping_to_class
 
 # torch.cuda.synchronize()
 # torch.backends.cudnn.benchmark = True
@@ -37,7 +38,9 @@ def resize(images, shape, label=False):
 
 def _mask_transform(mask):
     target = np.array(mask).astype('int32')
-    target[target == 255] = -1
+
+    target=RGB_mapping_to_class(target)     #TODO:这里将标签转化为类别图
+    #target[target == 255] = -1
     # target -= 1 # in DeepGlobe: make class 0 (should be ignored) as -1 (to be ignored in cross_entropy)
     return target
 
