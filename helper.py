@@ -375,7 +375,7 @@ class Trainer(object):
         # global predictions ###########################
         outputs_global = outputs_global.cpu()
         predictions_global = [F.interpolate(outputs_global[i:i+1], images[i].size[::-1], mode='nearest').argmax(1).detach().numpy() for i in range(len(images))]
-        self.metrics_global.update(labels_npy, predictions_global)
+        self.metrics_global.update(labels_npy, predictions_global)      #TODO:这里还在报错
 
         if self.mode == 2 or self.mode == 3:
             # patch predictions ###########################

@@ -104,23 +104,47 @@ class DeepGlobe(data.Dataset):
         self.color_jitter = transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.04)
         self.resizer = transforms.Resize((2448, 2448))
 
-    def __getitem__(self, index):
-        sample = {}
-        sample['id'] = self.ids[index][:-8]
-        image = Image.open(os.path.join(self.root, "Sat/" + self.ids[index])) # w, h
-        sample['image'] = image
-        # sample['image'] = transforms.functional.adjust_contrast(image, 1.4)
-        if self.label:
-            # label = scipy.io.loadmat(join(self.root, 'Notification/' + self.ids[index].replace('_sat.jpg', '_mask.mat')))["label"]
-            # label = Image.fromarray(label)
-            label = Image.open(os.path.join(self.root, 'Label/' + self.ids[index].replace('_sat.jpg', '_mask.png')))
-            sample['label'] = label
-        if self.transform and self.label:
-            image, label = self._transform(image, label)
+        #初始化的时候直接将图片加载进内存，提高训练速度
+        self.features=[]
+        for data in self.ids:
+            sample = {}
+            sample['id'] = data[:-8]
+            image = Image.open(os.path.join(self.root, "Sat/" + data))  # w, h
             sample['image'] = image
-            sample['label'] = label
-        # return {'image': image.astype(np.float32), 'label': label.astype(np.int64)}
-        return sample
+            # sample['image'] = transforms.functional.adjust_contrast(image, 1.4)
+            if self.label:
+                # label = scipy.io.loadmat(join(self.root, 'Notification/' + self.ids[index].replace('_sat.jpg', '_mask.mat')))["label"]
+                # label = Image.fromarray(label)
+                label = Image.open(os.path.join(self.root, 'Label/' + data.replace('_sat.jpg', '_mask.png')))
+                sample['label'] = label
+            if self.transform and self.label:
+                image, label = self._transform(image, label)
+                sample['image'] = image
+                sample['label'] = label
+            self.features.append(sample)
+            # return {'image': image.astype(np.float32), 'label': label.astype(np.int64)}
+
+        #val length
+        print(len(self.ids),len(self.features))
+
+    def __getitem__(self, index):
+        # sample = {}
+        # sample['id'] = self.ids[index][:-8]
+        # image = Image.open(os.path.join(self.root, "Sat/" + self.ids[index])) # w, h
+        # sample['image'] = image
+        # # sample['image'] = transforms.functional.adjust_contrast(image, 1.4)
+        # if self.label:
+        #     # label = scipy.io.loadmat(join(self.root, 'Notification/' + self.ids[index].replace('_sat.jpg', '_mask.mat')))["label"]
+        #     # label = Image.fromarray(label)
+        #     label = Image.open(os.path.join(self.root, 'Label/' + self.ids[index].replace('_sat.jpg', '_mask.png')))
+        #     sample['label'] = label
+        # if self.transform and self.label:
+        #     image, label = self._transform(image, label)
+        #     sample['image'] = image
+        #     sample['label'] = label
+        # # return {'image': image.astype(np.float32), 'label': label.astype(np.int64)}
+        # return sample
+        return self.features[index]
 
     def _transform(self, image, label):
         # if np.random.random() > 0.5:
